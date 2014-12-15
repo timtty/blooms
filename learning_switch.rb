@@ -12,18 +12,16 @@ class LearningSwitch < Controller
   end
 
   def packet_in(datapath_id, message)
-
-    puts "#{Time.now.to_i}|#{message.macsa}|#{message.macda}|#{message.eth_type}|#{message.total_len}"
-
     return if message.macda.reserved?
+    return if message.udp? and message.total_len < 128
 
-    @fdb.learn message.macsa, message.in_port
+    puts @fdb.learn message
     port_no = @fdb.lookup(message.macda)
     if port_no
-      #flow_mod datapath_id, message, port_no
-      #packet_out datapath_id, message, port_no
+      flow_mod datapath_id, message, port_no
+      packet_out datapath_id, message, port_no
     else
-      #flood datapath_id, message
+      flood datapath_id, message
     end
   end
 
